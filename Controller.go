@@ -6,6 +6,7 @@ import (
   "log"
   "net/http"
   "github.com/gorilla/mux"
+  "io/ioutil"
 )
 
 type Account struct {
@@ -35,11 +36,20 @@ func returnAccount(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+func createAccount(w http.ResponseWriter, r *http.Request) {
+  reqBody, _ := ioutil.ReadAll(r.Body)
+  var account Account
+  json.Unmarshal(reqBody, &account)
+  Accounts = append(Accounts, account)
+  json.NewEncoder(w).Encode(account)
+}
+
 func handleRequests() {
   router := mux.NewRouter().StrictSlash(true)
   router.HandleFunc("/", homePage)
   router.HandleFunc("/accounts", returnAllAccounts)
   router.HandleFunc("/account/{number}", returnAccount)
+  router.HandleFunc("/account", createAccount).Methods("POST")
   log.Fatal(http.ListenAndServe(":10000", router))
 }
 
