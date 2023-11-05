@@ -5,6 +5,7 @@ import (
   "fmt"
   "log"
   "net/http"
+  "github.com/gorilla/mux"
 )
 
 type Account struct {
@@ -24,10 +25,22 @@ func returnAllAccounts(w http.ResponseWriter, r *http.Request) {
   json.NewEncoder(w).Encode(Accounts)
 }
 
+func returnAccount(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+  key := vars["number"]
+  for _, account := range Accounts {
+    if account.Number == key {
+      json.NewEncoder(w).Encode(account)
+    }
+  }
+}
+
 func handleRequests() {
-  http.HandleFunc("/", homePage)
-  http.HandleFunc("/accounts", returnAllAccounts)
-  log.Fatal(http.ListenAndServe(":10000", nil))
+  router := mux.NewRouter().StrictSlash(true)
+  router.HandleFunc("/", homePage)
+  router.HandleFunc("/accounts", returnAllAccounts)
+  router.HandleFunc("/account/{number}", returnAccount)
+  log.Fatal(http.ListenAndServe(":10000", router))
 }
 
 func main() {
