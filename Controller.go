@@ -27,6 +27,8 @@ func returnAllAccounts(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnAccount(w http.ResponseWriter, r *http.Request) {
+  fmt.Println("Received returnAccount request")
+  fmt.Println(r.Method)
   vars := mux.Vars(r)
   key := vars["number"]
   for _, account := range Accounts {
@@ -44,12 +46,29 @@ func createAccount(w http.ResponseWriter, r *http.Request) {
   json.NewEncoder(w).Encode(account)
 }
 
+func deleteAccount(w http.ResponseWriter, r *http.Request) {
+    // use mux to parse the path parameters
+    vars := mux.Vars(r)
+    // extract the account number of the account we wish to delete
+    id := vars["number"]
+    // we then need to loop through dataset
+    for index, account := range Accounts {
+        // if our id path parameter matches one of our
+        // account numbers
+        if account.Number == id {
+            // updates our dataset to remove the account
+            Accounts = append(Accounts[:index], Accounts[index + 1:]...)
+        }
+    }
+}
+
 func handleRequests() {
   router := mux.NewRouter().StrictSlash(true)
   router.HandleFunc("/", homePage)
   router.HandleFunc("/accounts", returnAllAccounts)
-  router.HandleFunc("/account/{number}", returnAccount)
+  router.HandleFunc("/account/{number}", returnAccount).Methods("GET")
   router.HandleFunc("/account", createAccount).Methods("POST")
+  router.HandleFunc("/account/{number}", deleteAccount).Methods("DELETE")
   log.Fatal(http.ListenAndServe(":10000", router))
 }
 
