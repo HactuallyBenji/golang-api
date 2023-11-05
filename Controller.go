@@ -62,6 +62,23 @@ func deleteAccount(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func updateAccount(w http.ResponseWriter, r *http.Request) {
+  vars := mux.Vars(r)
+  id := vars["number"]
+
+  reqBody, _ := ioutil.ReadAll(r.Body)
+  var newAccount Account
+  json.Unmarshal(reqBody, &newAccount)
+
+  for index, account := range Accounts {
+    if account.Number == id {
+      Accounts[index].Number = newAccount.Number
+      Accounts[index].Balance = newAccount.Balance
+      Accounts[index].Desc = newAccount.Desc
+    }
+  }
+}
+
 func handleRequests() {
   router := mux.NewRouter().StrictSlash(true)
   router.HandleFunc("/", homePage)
@@ -69,6 +86,7 @@ func handleRequests() {
   router.HandleFunc("/account/{number}", returnAccount).Methods("GET")
   router.HandleFunc("/account", createAccount).Methods("POST")
   router.HandleFunc("/account/{number}", deleteAccount).Methods("DELETE")
+  router.HandleFunc("/account/{number}", updateAccount).Methods("PUT")
   log.Fatal(http.ListenAndServe(":10000", router))
 }
 
